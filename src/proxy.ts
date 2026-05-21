@@ -9,6 +9,7 @@ const publicPaths = [
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/refresh",
+  "/api/seed",
 ];
 
 export function proxy(request: NextRequest) {

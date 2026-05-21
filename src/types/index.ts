@@ -13,20 +13,6 @@ import type {
   AuditLog,
   LeadActivity,
   PropertyImage,
-  UserRole,
-  UserStatus,
-  LeadStatus,
-  LeadSource,
-  PropertyType,
-  PropertyCategory,
-  PropertyStatus,
-  FurnishingStatus,
-  DealStatus,
-  TaskStatus,
-  TaskPriority,
-  CustomerType,
-  PaymentStatus,
-  DocumentType,
 } from "@prisma/client";
 
 export type {
@@ -44,21 +30,22 @@ export type {
   AuditLog,
   LeadActivity,
   PropertyImage,
-  UserRole,
-  UserStatus,
-  LeadStatus,
-  LeadSource,
-  PropertyType,
-  PropertyCategory,
-  PropertyStatus,
-  FurnishingStatus,
-  DealStatus,
-  TaskStatus,
-  TaskPriority,
-  CustomerType,
-  PaymentStatus,
-  DocumentType,
 };
+
+export type UserRole = "ADMIN" | "MANAGER" | "AGENT";
+export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
+export type LeadStatus = "NEW" | "CONTACTED" | "QUALIFIED" | "SITE_VISIT_SCHEDULED" | "SITE_VISIT_DONE" | "NEGOTIATION" | "BOOKING" | "CLOSED" | "LOST";
+export type LeadSource = "WEBSITE" | "REFERRAL" | "FACEBOOK" | "INSTAGRAM" | "GOOGLE_ADS" | "WALK_IN" | "PHONE" | "EMAIL" | "WHATSAPP" | "PORTAL" | "OTHER";
+export type PropertyType = "APARTMENT" | "VILLA" | "PLOT" | "COMMERCIAL" | "OFFICE" | "SHOP" | "WAREHOUSE" | "PENTHOUSE" | "STUDIO";
+export type PropertyCategory = "RESIDENTIAL" | "COMMERCIAL" | "INDUSTRIAL" | "LAND";
+export type PropertyStatus = "AVAILABLE" | "SOLD" | "RENTED" | "UNDER_CONSTRUCTION" | "OFF_MARKET";
+export type FurnishingStatus = "UNFURNISHED" | "SEMI_FURNISHED" | "FULLY_FURNISHED";
+export type DealStatus = "INITIATED" | "BOOKING" | "AGREEMENT" | "PAYMENT_PENDING" | "CLOSED" | "CANCELLED";
+export type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type CustomerType = "BUYER" | "SELLER" | "INVESTOR" | "TENANT";
+export type PaymentStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+export type DocumentType = "AGREEMENT" | "KYC" | "PAYMENT_RECEIPT" | "LEGAL" | "OTHER";
 
 // Extended types with relations
 export type LeadWithRelations = Lead & {

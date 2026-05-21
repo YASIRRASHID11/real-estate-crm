@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { UserRole } from "@prisma/client";
+import type { UserRole } from "@/types";
 
 interface AuthUser {
   id: string;

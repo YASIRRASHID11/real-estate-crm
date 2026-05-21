@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { hashPassword, signAccessToken, signRefreshToken } from "@/lib/auth";
+import { hashPassword, signAccessToken, signRefreshToken, type JWTPayload } from "@/lib/auth";
 import { registerSchema } from "@/validations/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       select: { id: true, name: true, email: true, role: true, avatar: true },
     });
 
-    const payload = { userId: user.id, email: user.email, role: user.role, name: user.name };
+    const payload: JWTPayload = { userId: user.id, email: user.email, role: user.role as JWTPayload["role"], name: user.name };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { verifyRefreshToken, signAccessToken, signRefreshToken } from "@/lib/auth";
+import { verifyRefreshToken, signAccessToken, signRefreshToken, type JWTPayload } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     if (!user || user.status !== "ACTIVE") return apiError("Invalid session", 401);
 
-    const newPayload = { userId: user.id, email: user.email, role: user.role, name: user.name };
+    const newPayload: JWTPayload = { userId: user.id, email: user.email, role: user.role as JWTPayload["role"], name: user.name };
     const newAccessToken = signAccessToken(newPayload);
     const newRefreshToken = signRefreshToken(newPayload);
 

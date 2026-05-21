@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { comparePassword, signAccessToken, signRefreshToken } from "@/lib/auth";
+import { comparePassword, signAccessToken, signRefreshToken, type JWTPayload } from "@/lib/auth";
 import { loginSchema } from "@/validations/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const isValid = await comparePassword(password, user.password);
     if (!isValid) return apiError("Invalid credentials", 401);
 
-    const payload = { userId: user.id, email: user.email, role: user.role, name: user.name };
+    const payload: JWTPayload = { userId: user.id, email: user.email, role: user.role as JWTPayload["role"], name: user.name };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 

@@ -1,0 +1,354 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// All enum fields are stored as String in SQLite
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  password      String
+  role          String    @default("AGENT")
+  status        String    @default("ACTIVE")
+  avatar        String?
+  refreshToken  String?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  assignedLeads    Lead[]         @relation("AgentLeads")
+  assignedDeals    Deal[]         @relation("AgentDeals")
+  assignedTasks    Task[]         @relation("AssignedTasks")
+  createdTasks     Task[]         @relation("CreatedTasks")
+  followUps        FollowUp[]
+  notes            Note[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  activities       LeadActivity[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Lead {
+  id                String    @id @default(uuid())
+  fullName          String
+  phone             String
+  email             String?
+  city              String?
+  budget            Float?
+  budgetMax         Float?
+  propertyType      String?
+  preferredLocation String?
+  source            String    @default("OTHER")
+  status            String    @default("NEW")
+  score             Int       @default(0)
+  tags              String    @default("[]")
+  notes             String?
+  followUpDate      DateTime?
+  siteVisitDate     DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  assignedAgent     User?          @relation("AgentLeads", fields: [agentId], references: [id])
+  agentId           String?
+  customer          Customer?      @relation(fields: [customerId], references: [id])
+  customerId        String?
+  deal              Deal?
+  activities        LeadActivity[]
+  followUps         FollowUp[]
+  notesList         Note[]
+  tasks             Task[]
+
+  @@index([status])
+  @@index([agentId])
+  @@index([source])
+  @@map("leads")
+}
+
+model LeadActivity {
+  id          String   @id @default(uuid())
+  action      String
+  description String?
+  metadata    String?
+  createdAt   DateTime @default(now())
+
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId      String
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+
+  @@index([leadId])
+  @@map("lead_activities")
+}
+
+model Property {
+  id               String    @id @default(uuid())
+  title            String
+  slug             String    @unique
+  propertyType     String
+  category         String
+  description      String?
+  city             String
+  state            String
+  address          String
+  latitude         Float?
+  longitude        Float?
+  price            Float
+  priceUnit        String    @default("INR")
+  area             Float
+  areaUnit         String    @default("sqft")
+  bedrooms         Int?
+  bathrooms        Int?
+  parking          Int?
+  furnishingStatus String?
+  amenities        String    @default("[]")
+  status           String    @default("AVAILABLE")
+  featured         Boolean   @default(false)
+  builderName      String?
+  projectName      String?
+  reraId           String?
+  floorNumber      Int?
+  totalFloors      Int?
+  facing           String?
+  ageOfProperty    Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  images           PropertyImage[]
+  documents        Document[]
+  deals            Deal[]
+  notes            Note[]
+
+  @@index([propertyType])
+  @@index([status])
+  @@index([city])
+  @@index([featured])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  url        String
+  publicId   String?
+  caption    String?
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+
+  @@index([propertyId])
+  @@map("property_images")
+}
+
+model Customer {
+  id            String    @id @default(uuid())
+  name          String
+  phone         String
+  email         String?   @unique
+  address       String?
+  city          String?
+  customerType  String    @default("BUYER")
+  budget        Float?
+  budgetMax     Float?
+  preferredArea String?
+  kycVerified   Boolean   @default(false)
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  leads         Lead[]
+  deals         Deal[]
+  documents     Document[]
+  notesList     Note[]
+
+  @@index([customerType])
+  @@map("customers")
+}
+
+model Deal {
+  id               String    @id @default(uuid())
+  title            String
+  bookingAmount    Float?
+  finalAmount      Float
+  commissionRate   Float     @default(2)
+  commissionAmount Float?
+  status           String    @default("INITIATED")
+  notes            String?
+  closedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  lead             Lead?      @relation(fields: [leadId], references: [id])
+  leadId           String?    @unique
+  customer         Customer?  @relation(fields: [customerId], references: [id])
+  customerId       String?
+  property         Property?  @relation(fields: [propertyId], references: [id])
+  propertyId       String?
+  agent            User?      @relation("AgentDeals", fields: [agentId], references: [id])
+  agentId          String?
+  payments         Payment[]
+  documents        Document[]
+  tasks            Task[]
+  notesList        Note[]
+
+  @@index([status])
+  @@index([agentId])
+  @@map("deals")
+}
+
+model Payment {
+  id          String    @id @default(uuid())
+  amount      Float
+  dueDate     DateTime?
+  paidDate    DateTime?
+  status      String    @default("PENDING")
+  description String?
+  receiptUrl  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  deal        Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  dealId      String
+
+  @@index([dealId])
+  @@map("payments")
+}
+
+model Task {
+  id           String    @id @default(uuid())
+  title        String
+  description  String?
+  status       String    @default("PENDING")
+  priority     String    @default("MEDIUM")
+  dueDate      DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedTo   User?     @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  assignedToId String?
+  createdBy    User?     @relation("CreatedTasks", fields: [createdById], references: [id])
+  createdById  String?
+  lead         Lead?     @relation(fields: [leadId], references: [id])
+  leadId       String?
+  deal         Deal?     @relation(fields: [dealId], references: [id])
+  dealId       String?
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@map("tasks")
+}
+
+model FollowUp {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  scheduledAt DateTime
+  completedAt DateTime?
+  isDone      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lead        Lead?     @relation(fields: [leadId], references: [id])
+  leadId      String?
+  agent       User?     @relation(fields: [agentId], references: [id])
+  agentId     String?
+
+  @@index([leadId])
+  @@index([scheduledAt])
+  @@map("follow_ups")
+}
+
+model Note {
+  id         String    @id @default(uuid())
+  content    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  author     User?     @relation(fields: [authorId], references: [id])
+  authorId   String?
+  lead       Lead?     @relation(fields: [leadId], references: [id])
+  leadId     String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  customerId String?
+  deal       Deal?     @relation(fields: [dealId], references: [id])
+  dealId     String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+  propertyId String?
+
+  @@index([leadId])
+  @@map("notes")
+}
+
+model Document {
+  id           String    @id @default(uuid())
+  name         String
+  url          String
+  publicId     String?
+  documentType String    @default("OTHER")
+  fileSize     Int?
+  mimeType     String?
+  createdAt    DateTime  @default(now())
+
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  customerId   String?
+  property     Property? @relation(fields: [propertyId], references: [id])
+  propertyId   String?
+  deal         Deal?     @relation(fields: [dealId], references: [id])
+  dealId       String?
+
+  @@index([documentType])
+  @@map("documents")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String   @default("GENERAL")
+  isRead    Boolean  @default(false)
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  oldData   String?
+  newData   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}

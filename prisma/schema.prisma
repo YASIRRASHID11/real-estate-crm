@@ -3,11 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// All enum fields are stored as String in SQLite
 
 model User {
   id            String    @id @default(uuid())

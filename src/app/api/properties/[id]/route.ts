@@ -8,7 +8,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const property = await db.property.findUnique({
       where: { id, deletedAt: null },
-      include: { images: { orderBy: { order: "asc" } }, documents: true, notesList: { include: { author: { select: { name: true } } } } },
+      include: { images: { orderBy: { order: "asc" } }, documents: true, notes: { include: { author: { select: { name: true } } } } },
     });
     if (!property) return apiError("Property not found", 404);
     return apiSuccess(property);

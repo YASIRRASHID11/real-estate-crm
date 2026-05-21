@@ -75,12 +75,13 @@ export async function POST(request: NextRequest) {
     // Auto-assign to self if agent
     if (userRole === "AGENT" && !data.agentId) data.agentId = userId;
 
+    const { tags, followUpDate, ...rest } = data;
     const lead = await db.lead.create({
       data: {
-        ...data,
-        email: data.email || undefined,
-        tags: JSON.stringify(data.tags || []),
-        followUpDate: data.followUpDate ? new Date(data.followUpDate) : undefined,
+        ...rest,
+        email: rest.email || undefined,
+        tags: JSON.stringify(tags || []),
+        followUpDate: followUpDate ? new Date(followUpDate) : undefined,
       },
       include: {
         assignedAgent: { select: { id: true, name: true, email: true } },

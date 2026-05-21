@@ -71,8 +71,9 @@ export async function POST(request: NextRequest) {
 
     const slug = `${generateSlug(parsed.data.title)}-${Date.now()}`;
 
+    const { amenities, ...rest } = parsed.data;
     const property = await db.property.create({
-      data: { ...parsed.data, slug, amenities: JSON.stringify(parsed.data.amenities || []) },
+      data: { ...rest, slug, amenities: JSON.stringify(amenities || []) },
       include: { images: true },
     });
 

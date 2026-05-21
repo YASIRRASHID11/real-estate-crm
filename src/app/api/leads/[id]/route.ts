@@ -34,12 +34,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const existing = await db.lead.findUnique({ where: { id, deletedAt: null } });
     if (!existing) return apiError("Lead not found", 404);
 
-    const { followUpDate, ...rest } = parsed.data;
+    const { followUpDate, tags, ...rest } = parsed.data;
     const lead = await db.lead.update({
       where: { id },
       data: {
         ...rest,
         followUpDate: followUpDate ? new Date(followUpDate) : undefined,
+        ...(tags !== undefined && { tags: JSON.stringify(tags) }),
       },
     });
 

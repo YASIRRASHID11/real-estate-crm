@@ -25,7 +25,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const parsed = updatePropertySchema.safeParse(body);
     if (!parsed.success) return apiError("Validation failed", 400, parsed.error.flatten());
 
-    const property = await db.property.update({ where: { id }, data: parsed.data, include: { images: true } });
+    const { amenities, ...rest } = parsed.data;
+    const property = await db.property.update({
+      where: { id },
+      data: { ...rest, ...(amenities !== undefined && { amenities: JSON.stringify(amenities) }) },
+      include: { images: true },
+    });
     return apiSuccess(property, "Property updated");
   } catch (error) {
     console.error("[PROPERTY_PATCH]", error);

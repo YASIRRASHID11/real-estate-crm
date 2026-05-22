@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/header";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ export default function SettingsPage() {
 
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState("");
+
+  useEffect(() => { if (user?.name) setName(user.name); }, [user?.name]);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");

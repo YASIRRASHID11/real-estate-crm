@@ -6,6 +6,9 @@ import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
+    const callerRole = request.headers.get("x-user-role");
+    if (callerRole !== "ADMIN") return apiError("Only admins can create accounts", 403);
+
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 

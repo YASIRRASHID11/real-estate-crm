@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const callerRole = request.headers.get("x-user-role");
     const callerEmail = request.headers.get("x-user-email");
-    if (callerRole !== "ADMIN" || callerEmail !== "admin@propcrm.com") {
+    if (callerRole !== "ADMIN" || callerEmail !== "Embrace@gmail.com") {
       return apiError("Unauthorized", 403);
     }
 

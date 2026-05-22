@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    serverActions: { allowedOrigins: ["localhost:3000", "localhost:3001", "localhost:3002"] },
+    serverActions: { allowedOrigins: ["localhost:3000", "localhost:3001", "real-estate-crm-production-7320.up.railway.app"] },
   },
   turbopack: {
     root: path.resolve(__dirname),

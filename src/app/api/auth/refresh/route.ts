@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
     await db.user.update({ where: { id: user.id }, data: { refreshToken: newRefreshToken } });
 
     const response = apiSuccess({ accessToken: newAccessToken }, "Token refreshed");
-    response.headers.append("Set-Cookie", `access_token=${newAccessToken}; HttpOnly; Path=/; Max-Age=900; SameSite=Strict`);
-    response.headers.append("Set-Cookie", `refresh_token=${newRefreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`);
+    response.headers.append("Set-Cookie", `access_token=${newAccessToken}; HttpOnly; Path=/; Max-Age=900; SameSite=Lax; Secure`);
+    response.headers.append("Set-Cookie", `refresh_token=${newRefreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax; Secure`);
     return response;
   } catch {
     return apiError("Invalid refresh token", 401);

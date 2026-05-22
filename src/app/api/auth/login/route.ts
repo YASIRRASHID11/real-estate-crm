@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
       "Login successful"
     );
 
-    response.headers.append("Set-Cookie", `access_token=${accessToken}; HttpOnly; Path=/; Max-Age=900; SameSite=Strict`);
-    response.headers.append("Set-Cookie", `refresh_token=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`);
+    response.headers.append("Set-Cookie", `access_token=${accessToken}; HttpOnly; Path=/; Max-Age=900; SameSite=Lax; Secure`);
+    response.headers.append("Set-Cookie", `refresh_token=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax; Secure`);
 
     return response;
   } catch (error) {

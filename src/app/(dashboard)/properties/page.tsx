@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import Header from "@/components/layout/header";
 import Badge from "@/components/shared/badge";
 import EmptyState from "@/components/shared/empty-state";
@@ -15,6 +16,7 @@ export default function PropertiesPage() {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 12 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -25,7 +27,7 @@ export default function PropertiesPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: "12" });
-      if (search) params.set("search", search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
       if (typeFilter) params.set("propertyType", typeFilter);
       if (statusFilter) params.set("status", statusFilter);
       const res = await fetch(`/api/properties?${params}`);
@@ -36,7 +38,7 @@ export default function PropertiesPage() {
       }
     } catch { toast.error("Failed to load properties"); }
     setLoading(false);
-  }, [search, typeFilter, statusFilter]);
+  }, [debouncedSearch, typeFilter, statusFilter]);
 
   useEffect(() => { fetchProperties(); }, [fetchProperties]);
 

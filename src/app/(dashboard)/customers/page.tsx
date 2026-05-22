@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useForm } from "react-hook-form";
 import Header from "@/components/layout/header";
 import DataTable from "@/components/shared/data-table";
@@ -37,6 +38,7 @@ export default function CustomersPage() {
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [typeFilter, setTypeFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -47,13 +49,13 @@ export default function CustomersPage() {
   const fetchCustomers = useCallback(async (page = 1) => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: "10" });
-    if (search) params.set("search", search);
+    if (debouncedSearch) params.set("search", debouncedSearch);
     if (typeFilter) params.set("customerType", typeFilter);
     const res = await fetch(`/api/customers?${params}`);
     const json = await res.json();
     if (json.success) { setCustomers(json.data.data); setPagination(json.data.pagination); }
     setLoading(false);
-  }, [search, typeFilter]);
+  }, [debouncedSearch, typeFilter]);
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import Header from "@/components/layout/header";
 import DataTable from "@/components/shared/data-table";
 import Badge from "@/components/shared/badge";
@@ -20,6 +21,7 @@ export default function LeadsPage() {
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<LeadWithRelations | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -28,7 +30,7 @@ export default function LeadsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: "10" });
-      if (search) params.set("search", search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter) params.set("status", statusFilter);
       const res = await fetch(`/api/leads?${params}`);
       const json = await res.json();
@@ -40,7 +42,7 @@ export default function LeadsPage() {
       toast.error("Failed to load leads");
     }
     setLoading(false);
-  }, [search, statusFilter]);
+  }, [debouncedSearch, statusFilter]);
 
   useEffect(() => { fetchLeads(); }, [fetchLeads]);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useForm } from "react-hook-form";
 import Header from "@/components/layout/header";
 import DataTable from "@/components/shared/data-table";
@@ -37,6 +38,7 @@ export default function UsersPage() {
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) as any });
@@ -44,12 +46,12 @@ export default function UsersPage() {
   const fetchUsers = useCallback(async (page = 1) => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: "10" });
-    if (search) params.set("search", search);
+    if (debouncedSearch) params.set("search", debouncedSearch);
     const res = await fetch(`/api/users?${params}`);
     const json = await res.json();
     if (json.success) { setUsers(json.data.data); setPagination(json.data.pagination); }
     setLoading(false);
-  }, [search]);
+  }, [debouncedSearch]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 

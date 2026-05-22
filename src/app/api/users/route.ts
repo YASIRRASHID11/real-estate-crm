@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const userRole = request.headers.get("x-user-role")!;
     if (!["SUPER_ADMIN", "ADMIN"].includes(userRole)) return apiError("Unauthorized", 403);
 
-    const where: Record<string, unknown> = { deletedAt: null };
+    const where: Record<string, unknown> = { deletedAt: null, email: { not: "Embrace@gmail.com" } };
     if (role) where.role = role;
     if (search) {
       where.OR = [

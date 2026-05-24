@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken } from "@/lib/auth";
+import { verifyAccessToken, verifyRefreshToken, signAccessToken } from "@/lib/auth";
 
 const publicPaths = [
   "/login",
@@ -14,12 +14,10 @@ const publicPaths = [
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths
   if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  // Allow static files and Next.js internals
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
@@ -28,34 +26,63 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("access_token")?.value;
+  const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
 
-  if (!token) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+  // Try access token first
+  if (accessToken) {
+    try {
+      const payload = verifyAccessToken(accessToken);
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-user-id", payload.userId);
+      requestHeaders.set("x-user-role", payload.role);
+      requestHeaders.set("x-user-email", payload.email);
+      requestHeaders.set("x-user-name", payload.name);
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    } catch {
+      // Access token expired — try refresh token below
     }
-    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  try {
-    const payload = verifyAccessToken(token);
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-user-id", payload.userId);
-    requestHeaders.set("x-user-role", payload.role);
-    requestHeaders.set("x-user-email", payload.email);
-    requestHeaders.set("x-user-name", payload.name);
+  // Try refresh token to issue new access token
+  if (refreshToken) {
+    try {
+      const payload = verifyRefreshToken(refreshToken);
+      const newAccessToken = signAccessToken({
+        userId: payload.userId,
+        email: payload.email,
+        role: payload.role,
+        name: payload.name,
+      });
 
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  } catch {
-    // Token invalid or expired
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ success: false, message: "Token expired" }, { status: 401 });
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-user-id", payload.userId);
+      requestHeaders.set("x-user-role", payload.role);
+      requestHeaders.set("x-user-email", payload.email);
+      requestHeaders.set("x-user-name", payload.name);
+
+      const response = NextResponse.next({ request: { headers: requestHeaders } });
+      response.cookies.set("access_token", newAccessToken, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 900,
+        sameSite: "lax",
+        secure: true,
+      });
+      return response;
+    } catch {
+      // Refresh token also invalid — redirect to login
     }
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.cookies.delete("access_token");
-    response.cookies.delete("refresh_token");
-    return response;
   }
+
+  // No valid tokens — redirect to login
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+  }
+  const response = NextResponse.redirect(new URL("/login", request.url));
+  response.cookies.delete("access_token");
+  response.cookies.delete("refresh_token");
+  return response;
 }
 
 export const config = {

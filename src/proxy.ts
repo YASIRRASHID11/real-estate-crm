@@ -65,7 +65,7 @@ export function proxy(request: NextRequest) {
       response.cookies.set("access_token", newAccessToken, {
         httpOnly: true,
         path: "/",
-        maxAge: 900,
+        maxAge: 365 * 24 * 60 * 60,
         sameSite: "lax",
         secure: true,
       });
